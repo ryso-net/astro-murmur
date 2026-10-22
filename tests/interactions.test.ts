@@ -191,7 +191,9 @@ test("Pagefind search loads on demand, opens the native dialog, and closes on Es
   } as Record<string, Element>)[selector] ?? null });
   run("site-header", {
     document,
-    window: { matchMedia: () => new Events() },
+    // Search prewarming is idle work; this fixture keeps it queued so the test
+    // can exercise the explicit open and retry paths deterministically.
+    window: { matchMedia: () => new Events(), requestIdleCallback: () => 0 },
     require: () => ({ loadPagefindComponents: async () => {
       loads++;
       if (shouldFail) throw new Error("offline");
@@ -228,7 +230,11 @@ test("Pagefind search loads on demand, opens the native dialog, and closes on Es
   assert.equal(trigger.attributes.get("aria-expanded"), "false");
   await document.emitLifecycle("astro:page-load");
   await settle();
-  assert.equal(loads, 3);
+  assert.equal(loads, 2);
+  await trigger.emit("click");
+  await settle();
+  assert.equal(dialog.open, true);
+  assert.equal(loads, 2);
 });
 
 test("mobile header follows scroll direction and stays visible for overlays, focus, and desktop", async () => {
@@ -428,6 +434,13 @@ function pagefindFixture() {
       ? links.find((link) => link.isConnected) ?? null : null,
     createElement: () => {
       const link = new Element();
+      link.cloneNode = () => {
+        const copy = new Element();
+        copy.href = link.href;
+        copy.rel = link.rel;
+        copy.dataset = { ...link.dataset };
+        return copy;
+      };
       link.remove = () => { link.isConnected = false; };
       return link;
     },
@@ -440,7 +453,7 @@ function pagefindFixture() {
     }) } },
     require: (path: string) => { imports.push(path); return {}; },
   });
-  return { trigger, links, imports, instances, searchModule };
+  return { trigger, document, links, imports, instances, searchModule };
 }
 
 test("Pagefind component loading shares CSS and script requests", async () => {
@@ -455,6 +468,24 @@ test("Pagefind component loading shares CSS and script requests", async () => {
   assert.equal(f.links[0]?.dataset.pagefindComponentUi, "ready");
   assert.deepEqual(f.imports, ["/pagefind/pagefind-component-ui.js"]);
   assert.deepEqual(f.instances, ["murmur-search"]);
+});
+
+test("Pagefind component stylesheet survives an Astro head swap", async () => {
+  const f = pagefindFixture();
+  const request = f.searchModule.loadPagefindComponents(f.trigger);
+  await f.links[0]?.emit("load");
+  await request;
+
+  const incomingStylesheets: Element[] = [];
+  const newDocument = { head: {
+    querySelectorAll: () => incomingStylesheets,
+    append: (link: Element) => incomingStylesheets.push(link),
+  } };
+  await f.document.emitLifecycle("astro:before-swap", { newDocument });
+
+  assert.equal(incomingStylesheets.length, 1);
+  assert.equal(incomingStylesheets[0]?.href, f.links[0]?.href);
+  assert.equal(incomingStylesheets[0]?.dataset.pagefindComponentUi, "ready");
 });
 
 test("Pagefind component loading retries when its stylesheet fails", async () => {

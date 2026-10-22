@@ -25,6 +25,21 @@ declare global {
 let componentUiPromise: Promise<void> | undefined;
 let componentCssPromise: Promise<void> | undefined;
 
+function preserveComponentCss(event: Event) {
+  const newDocument = (event as Event & { newDocument?: Document }).newDocument;
+  const link = document.querySelector<HTMLLinkElement>("link[data-pagefind-component-ui]");
+  if (!newDocument || !link) return;
+
+  // ClientRouter removes runtime-added head elements unless the incoming document
+  // contains a matching stylesheet. Add a detached counterpart so Astro keeps the
+  // already loaded link (and its cached promise) across the swap.
+  const hasMatchingStylesheet = [...newDocument.head.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')]
+    .some((candidate) => candidate.href === link.href);
+  if (!hasMatchingStylesheet) newDocument.head.append(link.cloneNode(true));
+}
+
+document.addEventListener("astro:before-swap", preserveComponentCss);
+
 function loadComponentCss(path: string) {
   const existingLink = document.querySelector<HTMLLinkElement>("link[data-pagefind-component-ui]");
   if (existingLink) return componentCssPromise ?? Promise.resolve();
