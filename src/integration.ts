@@ -9,7 +9,7 @@ import { getMessagesForLocale } from "./i18n/messages";
 
 export default function murmurTheme(murmurConfig: MurmurConfig): AstroIntegration {
   return {
-    name: "@ryso-blog/astro-murmur",
+    name: "murmur-theme",
     hooks: {
       "astro:config:setup": ({ injectRoute, updateConfig }) => {
         const route = (pattern: string, file: string, prerender = true) => {

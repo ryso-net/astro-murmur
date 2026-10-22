@@ -1,36 +1,23 @@
 # Murmur
 
-Murmur 是一个以文字为主的 Astro 7 博客主题包，提供 Astro 集成、路由、组件、样式和内容集合定义。博客项目单独保存 `murmur.config.ts`、文章和图片；主题包通过版本依赖更新，不要求把写作内容放进主题仓库。
+Murmur 是一个以文字为主的 Astro 7 博客模板。页面、组件、样式、脚本、内容配置和站点集成都直接保存在本仓库中；创建博客时会复制一份完整源码到新项目，之后由博客仓库自行维护主题与内容。
 
-## 接入博客项目
+## 开始使用
 
 ```sh
-npm install git+https://github.com/ryso-blog/astro-murmur.git#v0.1.0 astro @astrojs/mdx @astrojs/markdown-satteri pagefind
+npm create astro@latest -- --template ryso-blog/astro-murmur
+cd <your-project>
+npm install
+npm run dev
 ```
 
-在博客根目录的 `astro.config.ts` 中把站点配置传给主题：
+在 GitHub 仓库的 **Settings → General → Template repository** 中启用模板选项后，访问者也可以通过 “Use this template” 创建自己的副本。
 
-```ts
-import { defineConfig } from "astro/config";
-import murmurTheme from "@ryso-blog/astro-murmur";
-import { murmurConfig } from "./murmur.config";
-
-export default defineConfig({
-  integrations: [murmurTheme(murmurConfig)],
-});
-```
-
-在博客的 `src/content.config.ts` 中启用主题提供的集合：
-
-```ts
-export { collections } from "@ryso-blog/astro-murmur/content";
-```
-
-文章、普通页面和标签说明分别放在博客项目的 `src/content/posts/`、`src/content/pages/` 和 `src/content/tags/`。博客根目录仍由博客作者维护 `murmur.config.ts`。主题在独立仓库中维护；博客通过 Git 标签安装固定版本，更新 `package.json` 中的标签并刷新 lockfile 后再采用主题更新。
+已有 Astro 项目也可以把本模板的 `src/`、`astro.config.ts`、`murmur.config.ts`、`tsconfig.json` 和 `scripts/` 合并到项目中，再按本文配置站点。模板创建的是独立副本；模板仓库后续的更新不会自动覆盖你的博客。
 
 ## 本地开发
 
-克隆主题仓库后，在其根目录运行 `npm install`，然后使用 `npm test` 检查测试。主题的集成预览应在实际博客项目中运行 `npm run dev`、`npm run check` 和 `npm run build`。CSS 体积可通过博客项目中的 `npm run size` 检查。
+克隆本仓库后，在根目录运行 `npm install`，然后使用 `npm run dev` 启动站点。`npm run build` 会构建静态页面并生成 Pagefind 索引；也可运行 `npm run check` 检查 Astro 与 TypeScript 项目，运行 `npm run size` 查看 CSS gzip 体积。
 
 构建后运行 `npm run size` 查看主题 CSS 的 gzip 体积；命令会汇总本地 CSS 文件和去重后的内联样式，排除 Pagefind 自带的可选 UI 样式，不包含外部 Artalk 资源。
 
@@ -46,7 +33,7 @@ description: "记录技术、阅读和日常。",
 author: "作者名称",
 ```
 
-站点配置集中在博客根目录的 `murmur.config.ts`：站点标题、作者、部署地址、子路径、构建语言、导航和普通页面路由都从这里调整。`i18n.locale` 决定本次构建使用的界面语言；一次构建只输出一套无语言前缀的路由。例如将它改为 `en` 后重新构建，站点仍使用 `/about/` 等根路由，界面使用英文，并优先显示英文内容译文。`i18n.fallbackLocale` 标记内容根目录的语言，也是缺少译文时的回退语言。支持的语言由 `navigation` 的语言键推导；界面词条按语言分开放在主题包的 `src/i18n/locales/`，新增语言时添加导航映射并在主题包的 `src/i18n/ui.ts` 注册词条文件。部署前填写 `siteUrl`；发布在项目子路径时，把 `basePath` 改成对应路径，例如 `/murmur/`。
+站点配置集中在博客根目录的 `murmur.config.ts`：站点标题、作者、部署地址、子路径、构建语言、导航和普通页面路由都从这里调整。`i18n.locale` 决定本次构建使用的界面语言；一次构建只输出一套无语言前缀的路由。例如将它改为 `en` 后重新构建，站点仍使用 `/about/` 等根路由，界面使用英文，并优先显示英文内容译文。`i18n.fallbackLocale` 标记内容根目录的语言，也是缺少译文时的回退语言。支持的语言由 `navigation` 的语言键推导；界面词条按语言分开放在 `src/i18n/locales/`，新增语言时添加导航映射并在 `src/i18n/ui.ts` 注册词条文件。部署前填写 `siteUrl`；发布在项目子路径时，把 `basePath` 改成对应路径，例如 `/murmur/`。
 
 导航项和显示顺序在 `murmur.config.ts` 的 `navigation` 中按语言配置为“名称: 路由”映射。对象键是导航显示名称，值是相对该语言的站内路由；调整对象顺序即可调整导航顺序。默认导航包含首页和归档；搜索由页头按钮打开，不占导航路由。默认导航不包含标签页。例如：
 
@@ -90,7 +77,7 @@ description: "关于土豆主题文章的简短介绍。"
 MDX 文章可以导入 Astro 组件。例如主题自带的 `Callout.astro` 输出静态 HTML，不需要客户端脚本：
 
 ```mdx
-import Callout from "@ryso-blog/astro-murmur/components/Callout.astro";
+import Callout from "@/components/Callout.astro";
 
 <Callout>需要强调的说明。</Callout>
 ```
@@ -134,28 +121,26 @@ artalk: {
 
 ## 目录
 
-博客项目只保存站点配置、内容和部署设置；主题实现由 `@ryso-blog/astro-murmur` 提供：
+站点配置、内容和主题实现都由博客仓库维护：
 
 ```text
-blog/
+your-blog/
 ├── murmur.config.ts
 ├── astro.config.ts
 └── src/
+    ├── components/
+    ├── layouts/
+    ├── pages/
+    ├── scripts/
+    ├── styles/
+    ├── i18n/
+    ├── utils/
+    ├── assets/
     ├── content.config.ts
     └── content/
         ├── pages/
         ├── posts/
         └── tags/
-
-astro-murmur/
-├── package.json
-└── src/
-    ├── components/
-    ├── layouts/
-    ├── pages/
-    ├── styles/
-    ├── i18n/
-    └── utils/
 ```
 
 ## 自定义页面中的近期文章
@@ -163,7 +148,7 @@ astro-murmur/
 需要在首页或任意自定义页面插入近期文章时，将页面保存为 `.mdx`，并在希望显示的位置导入组件：
 
 ```mdx
-import RecentPosts from "@ryso-blog/astro-murmur/components/RecentPosts.astro";
+import RecentPosts from "@/components/RecentPosts.astro";
 
 <RecentPosts />
 ```
