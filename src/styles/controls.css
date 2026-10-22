@@ -1,0 +1,71 @@
+/* Theme controls and table of contents. */
+/* Match Pagefind's native Component UI to Murmur through its supported tokens. */
+html:root {
+  --pf-text: var(--primary);
+  --pf-text-secondary: var(--secondary);
+  --pf-text-muted: var(--secondary);
+  --pf-background: var(--panel);
+  --pf-border: var(--line);
+  --pf-border-focus: var(--accent);
+  --pf-hover: color-mix(in srgb, var(--primary) 6%, var(--panel));
+  --pf-mark: var(--accent);
+  --pf-outline-focus: var(--accent);
+  --pf-font: system-ui, sans-serif;
+  --pf-modal-backdrop: light-dark(rgb(25 28 32 / 28%), rgb(0 0 0 / 58%));
+  --pf-border-radius: var(--radius-medium);
+}
+[data-search-modal]::backdrop { backdrop-filter: blur(.25rem); }
+[data-search-modal] pagefind-input { width: 100%; }
+.search-trigger, .theme-toggle { display: none; width: var(--s8); height: var(--s8); }
+:root[data-has-js] :is(.search-trigger, .theme-toggle) { display: grid; }
+.theme-toggle { padding: var(--s1); }
+.theme-toggle-icon { display: none; width: var(--s4); height: var(--s4); }
+:root[data-theme="light"] .theme-toggle-icon--sun { display: block; }
+:root[data-theme="dark"] .theme-toggle-icon--moon { display: block; }
+:root:not([data-theme]) .theme-toggle-icon--system { display: block; }
+.toc-title { margin: 0 0 var(--s2); color: var(--secondary); font-size: .8125rem; }
+.mobile-toc, .mobile-toc-toggle { display: none; }
+[data-toc-overflow] { mask-image: linear-gradient(#000 calc(100% - var(--s8)), transparent); }
+.toc-list { border-inline-start: 1px solid var(--line); }
+.toc-list a { position: relative; display: block; padding: var(--s-optical) 0 var(--s-optical) var(--s3); color: var(--secondary); font-size: .875rem; line-height: 1.5; text-decoration: none; }
+.toc-list a:is(:hover, :focus-visible, [data-visible], [aria-current="location"]) { color: var(--primary); }
+.toc-list a:focus-visible { border-radius: var(--radius-small); }
+.toc-list a::before { position: absolute; inset-block: 0; inset-inline-start: -1px; border-inline-start: 2px solid transparent; content: ""; }
+.toc-list a:is([data-visible], [aria-current="location"])::before { border-inline-start-color: var(--accent); }
+
+@media (max-width: 36rem) {
+  .site-header-control { width: var(--touch-target); height: var(--touch-target); }
+  .site-header-control > svg { width: var(--s4); height: var(--s4); }
+}
+
+@media (max-width: 59.999rem) {
+  .table-of-contents { display: none; }
+  .mobile-toc { position: fixed; inset: auto 0 0; width: 100%; height: auto; max-height: min(82dvh, var(--overlay-max-height)); margin: 0; padding: 0; border: 0; background: transparent; color: var(--primary); overflow: visible; translate: 0 100%; transition: translate 220ms cubic-bezier(.22, 1, .36, 1), display 220ms allow-discrete, overlay 220ms allow-discrete; }
+  .mobile-toc:popover-open { display: block; translate: 0 0; }
+  .mobile-toc.is-closing { display: block; pointer-events: none; }
+  @starting-style { .mobile-toc:popover-open { translate: 0 100%; } }
+  .mobile-toc-toggle { position: fixed; inset-inline-end: calc(var(--s4) + env(safe-area-inset-right, 0px)); inset-block-end: calc(var(--s4) + env(safe-area-inset-bottom, 0px)); z-index: 22; display: grid; place-items: center; width: calc(var(--touch-target) + var(--s2)); height: calc(var(--touch-target) + var(--s2)); border: 1px solid color-mix(in srgb, var(--line) 80%, transparent); border-radius: var(--radius-full); background: var(--bg); box-shadow: 0 2px 12px rgb(0 0 0 / 16%); color: var(--primary); cursor: pointer; }
+  .mobile-toc-toggle svg { display: block; width: 1.375rem; height: 1.375rem; }
+  .mobile-toc-toggle:hover { background: var(--panel); }
+  :root:has(.mobile-toc:popover-open, .mobile-toc.is-closing) .mobile-toc-toggle { visibility: hidden; }
+  .mobile-toc-panel { position: relative; display: flex; flex-direction: column; width: 100%; max-height: inherit; overflow: hidden; padding: var(--s3) var(--s4) calc(var(--s4) + env(safe-area-inset-bottom, 0px)); transform: translateY(var(--mobile-toc-drag-y, 0px)); transition: transform 180ms cubic-bezier(.2, .8, .2, 1); border: 0; border-block-start: 1px solid color-mix(in srgb, var(--line) 50%, transparent); border-radius: var(--radius-large) var(--radius-large) 0 0; }
+  .mobile-toc-scroll { min-height: 0; flex: 1; overflow: auto; overscroll-behavior: contain; }
+  .mobile-toc[data-dragging] .mobile-toc-panel { transition: none; }
+  .mobile-toc-handle { display: grid; flex: none; place-items: center; height: var(--s12); margin: calc(-1 * var(--s3)) calc(-1 * var(--s4)) var(--s2); touch-action: none; cursor: grab; }
+  .mobile-toc-handle::before { width: var(--s8); height: var(--s1); border-radius: var(--radius-full); background: var(--line); content: ""; }
+  .mobile-toc-handle:active { cursor: grabbing; }
+  .mobile-toc-panel .toc-list a { display: flex; min-height: var(--touch-target); align-items: center; padding: var(--s2) var(--s3); }
+}
+
+@media (min-width: 60rem) {
+  .archive-tags, .table-of-contents { position: sticky; top: var(--sticky-header-offset); margin-block-start: 0; }
+  .table-of-contents { max-height: calc(100dvh - var(--sticky-header-offset) - var(--s4)); overflow: auto; }
+  .article--with-toc > .table-of-contents { grid-column: 2; grid-row: 2 / span 3; }
+}
+
+/* Older browsers retain inline navigation and the desktop ToC list. */
+@supports not selector(:popover-open) {
+  .site-nav-mobile, .mobile-toc-toggle { display: none; }
+  .site-nav { display: block; }
+  .table-of-contents { display: block; }
+}

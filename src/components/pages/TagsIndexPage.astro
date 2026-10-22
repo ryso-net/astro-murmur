@@ -1,0 +1,24 @@
+---
+import { getCollection } from "astro:content";
+import { getMessages } from "../../i18n/ui";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPostsForSite } from "../../utils/posts";
+import { getTagGroups } from "../../utils/tags";
+import TagDirectory from "../TagDirectory.astro";
+import PageHeader from "../PageHeader.astro";
+
+const messages = getMessages();
+const tags = getTagGroups(getPostsForSite(await getCollection("posts")));
+---
+
+<BaseLayout title={messages.tagsTitle}>
+  <PageHeader title={messages.tagsTitle} />
+
+  <div data-enter="content">
+    {tags.length > 0 ? (
+      <TagDirectory tags={tags} />
+    ) : (
+      <p>{messages.tagsEmpty}</p>
+    )}
+  </div>
+</BaseLayout>

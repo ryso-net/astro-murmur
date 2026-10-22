@@ -1,0 +1,17 @@
+---
+import PostPage from "../../components/pages/PostPage.astro";
+import { getPostStaticPaths } from "../../utils/post-routes";
+
+export function getStaticPaths() {
+  return getPostStaticPaths();
+}
+
+const { post, previousPost, nextPost, tagSlugs } = Astro.props;
+---
+
+<PostPage
+  post={post}
+  previousPost={previousPost}
+  nextPost={nextPost}
+  tagSlugs={tagSlugs}
+/>

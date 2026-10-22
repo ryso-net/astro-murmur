@@ -1,0 +1,15 @@
+---
+import { murmurConfig } from "../config";
+import { getMessages } from "../i18n/ui";
+import { withBase } from "../utils/paths";
+
+const messages = getMessages();
+---
+
+<footer class="site-footer">
+  <div class="site-footer-start">
+    <span>© {new Date().getFullYear()}{" "}{murmurConfig.author || murmurConfig.title}</span>
+    {murmurConfig.siteUrl.trim() && <a href={withBase("rss.xml")}>{messages.feedLink}</a>}
+  </div>
+  <span>{messages.poweredByPrefix} <a href="https://astro.build/">Astro</a> {messages.poweredBySuffix}</span>
+</footer>

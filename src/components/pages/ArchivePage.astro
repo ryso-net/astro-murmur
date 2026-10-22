@@ -1,0 +1,58 @@
+---
+import { getCollection } from "astro:content";
+import { getMessages } from "../../i18n/ui";
+import { getPostsForSite } from "../../utils/posts";
+import { getTagGroups } from "../../utils/tags";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostCard from "../PostCard.astro";
+import TagDirectory from "../TagDirectory.astro";
+import PageHeader from "../PageHeader.astro";
+
+const messages = getMessages();
+const allPosts = await getCollection("posts");
+const posts = getPostsForSite(allPosts);
+const tags = getTagGroups(posts);
+const archiveTagLimit = 8;
+const postsByYear = new Map<number, typeof posts>();
+for (const post of posts) {
+  const year = post.data.pubDate.getUTCFullYear();
+  const yearPosts = postsByYear.get(year) ?? [];
+  yearPosts.push(post);
+  postsByYear.set(year, yearPosts);
+}
+const years = [...postsByYear.keys()];
+---
+
+<BaseLayout title={messages.archiveTitle} layout="double">
+  <div class="archive-layout">
+    <PageHeader title={messages.archiveTitle} />
+    <div class="archive-posts" data-enter="content">
+      {years.length > 0 ? (
+        years.map((year) => (
+          <section class="archive-year" aria-labelledby={"year-" + year}>
+            <h2 id={"year-" + year}>{year}</h2>
+            {postsByYear.get(year)?.map((post) => (
+              <PostCard post={post} showYear={false} showDescription={false} />
+            ))}
+          </section>
+        ))
+      ) : (
+        <p>{messages.archiveEmpty}</p>
+      )}
+    </div>
+
+    <aside class="archive-tags" data-enter="sidebar" aria-labelledby="archive-tags-title">
+      <h2 id="archive-tags-title">{messages.tagsTitle}</h2>
+      {tags.length > 0 ? (
+        <TagDirectory
+          tags={tags}
+          limit={archiveTagLimit}
+          showCount={false}
+          allTagsLabel={tags.length > archiveTagLimit ? messages.viewAllTags : undefined}
+        />
+      ) : (
+        <p>{messages.tagsEmpty}</p>
+      )}
+    </aside>
+  </div>
+</BaseLayout>

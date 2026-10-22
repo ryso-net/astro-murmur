@@ -1,0 +1,44 @@
+export const CALLOUT_TYPES = ["info", "note", "tip", "important", "warning", "caution", "danger"] as const;
+export type CalloutType = (typeof CALLOUT_TYPES)[number];
+
+export interface Messages {
+  description: string;
+  navLabel: string;
+  themeCurrent: string;
+  themeSystem: string;
+  themeLight: string;
+  themeDark: string;
+  skipToContent: string;
+  recentPosts: string;
+  viewArchive: string;
+  viewAllTags: string;
+  noPosts: string;
+  archiveTitle: string;
+  archiveEmpty: string;
+  tagsTitle: string;
+  tagsEmpty: string;
+  postTags: string;
+  postUpdatedAt: string;
+  commentsTitle: string;
+  commentsNoScript: string;
+  commentsFailed: string;
+  copyCode: string;
+  codeCopied: string;
+  copyFailed: string;
+  tableOfContents: string;
+  postNavigation: string;
+  previousPost: string;
+  nextPost: string;
+  fallbackNotice: string;
+  notFoundTitle: string;
+  searchTitle: string;
+  searchFailed: string;
+  searchClose: string;
+  poweredByPrefix: string;
+  poweredBySuffix: string;
+  feedLink: string;
+  detailsSummary: string;
+  calloutTitles: Record<CalloutType, string>;
+  tabsLabel: string;
+  tabLabel: string;
+}

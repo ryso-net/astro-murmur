@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getFallbackNotice, siteLocale } from "../i18n/ui";
+import { localePath } from "../utils/paths";
+import { formatPostDate, getPostLocale, getPostSlug } from "../utils/posts";
+
+interface Props {
+  post: CollectionEntry<"posts">;
+  showYear?: boolean;
+  showDescription?: boolean;
+}
+
+const { post, showYear = true, showDescription = true } = Astro.props;
+const postLocale = getPostLocale(post);
+const date = formatPostDate(post.data.pubDate, showYear);
+---
+
+<article class:list={["post-card", showDescription && post.data.description && "post-card--with-description"]}>
+  <time datetime={post.data.pubDate.toISOString()}>{date}</time>
+  <div>
+    <h3><a href={localePath("posts/" + getPostSlug(post))}>{post.data.title}</a></h3>
+    {showDescription && post.data.description && <p class="post-description" title={post.data.description}>{post.data.description}</p>}
+    {postLocale !== siteLocale && (
+      <p class="fallback-notice">{getFallbackNotice(postLocale)}</p>
+    )}
+  </div>
+</article>

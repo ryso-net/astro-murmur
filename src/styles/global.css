@@ -1,0 +1,6 @@
+/* Shared entry: Vite resolves these imports into one stylesheet. */
+@import "./base.css";
+@import "./layout.css";
+@import "./content.css";
+@import "./controls.css";
+@import "./motion.css";

@@ -1,0 +1,59 @@
+---
+import { getMessages } from "../i18n/ui";
+import { withBase } from "../utils/paths";
+
+const messages = getMessages();
+---
+
+<pagefind-config
+  bundle-path={withBase("pagefind/")}
+  instance="murmur-search"
+  data-pagefind-ignore
+  transition:persist
+></pagefind-config>
+
+<button
+  class="site-header-control search-trigger"
+  type="button"
+  data-search-open
+  data-pagefind-ignore
+  data-pagefind-component-path={withBase("pagefind/pagefind-component-ui.js")}
+  data-pagefind-component-css={withBase("pagefind/pagefind-component-ui.css")}
+  data-pagefind-failed={messages.searchFailed}
+  aria-label={messages.searchTitle}
+  aria-haspopup="dialog"
+  aria-expanded="false"
+  aria-keyshortcuts="Control+K Meta+K"
+  transition:persist
+>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+    <circle cx="10.8" cy="10.8" r="6.8" />
+    <path d="m16 16 4.5 4.5" />
+  </svg>
+</button>
+
+<dialog
+  class="pf-modal"
+  data-search-modal
+  data-pagefind-ignore
+  aria-label={messages.searchTitle}
+  transition:persist
+>
+  <div class="pf-modal-header">
+    <div class="pf-modal-header-content">
+      <pagefind-input instance="murmur-search"></pagefind-input>
+    </div>
+    <button class="pf-modal-close" type="button" data-search-close aria-label={messages.searchClose}>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M15 5L5 15M5 5l10 10" />
+      </svg>
+    </button>
+  </div>
+  <div class="pf-modal-body" tabindex="-1">
+    <pagefind-summary instance="murmur-search"></pagefind-summary>
+    <pagefind-results instance="murmur-search"></pagefind-results>
+  </div>
+  <div class="pf-modal-footer">
+    <pagefind-keyboard-hints instance="murmur-search"></pagefind-keyboard-hints>
+  </div>
+</dialog>

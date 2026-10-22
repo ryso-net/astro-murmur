@@ -1,0 +1,35 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import { getFallbackNotice, getMessages, siteLocale } from "../../i18n/ui";
+import { getContentIdentity } from "../../i18n/content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHeader from "../PageHeader.astro";
+import CodeCopy from "../CodeCopy.astro";
+
+interface Props {
+  page: CollectionEntry<"pages">;
+}
+
+const { page } = Astro.props;
+const messages = getMessages();
+const contentIdentity = getContentIdentity(page.id);
+const contentLocale = contentIdentity.locale;
+const isFallback = contentLocale !== siteLocale;
+const { Content } = await render(page);
+---
+
+<BaseLayout
+  title={page.data.title}
+  description={page.data.description}
+>
+  <article class="article" lang={contentLocale} data-pagefind-body>
+    <PageHeader title={page.data.title} description={page.data.description}>
+      {isFallback && <p class="fallback-notice">{getFallbackNotice(contentLocale)}</p>}
+    </PageHeader>
+
+    <div class="prose" data-enter="content" data-copy-code={messages.copyCode} data-code-copied={messages.codeCopied} data-copy-failed={messages.copyFailed}>
+      <Content />
+    </div>
+  </article>
+  <CodeCopy />
+</BaseLayout>

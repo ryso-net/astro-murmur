@@ -1,0 +1,56 @@
+/* Page navigation rises in by role; layout expansion keeps its longer sequence. */
+@keyframes content-enter {
+  from { opacity: 0; transform: translateY(var(--layout-enter-distance, 6px)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes layout-title-shift {
+  from { transform: translateX(var(--layout-title-offset)); }
+  to { transform: translateX(0); }
+}
+::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) {
+  animation: none;
+}
+:root[data-page-enter] [data-enter="header"] {
+  animation: content-enter 220ms cubic-bezier(.22, 1, .36, 1) both;
+}
+:root[data-page-enter] [data-enter="content"] {
+  animation: content-enter 220ms cubic-bezier(.22, 1, .36, 1) 100ms backwards;
+}
+:root[data-page-enter] [data-enter="sidebar"] {
+  animation: content-enter 220ms cubic-bezier(.22, 1, .36, 1) 200ms backwards;
+}
+:root[data-layout-transition="single-to-double"] [data-enter="header"] > :not(h1),
+:root[data-layout-transition="single-to-double"] [data-enter="content"] {
+  animation: content-enter var(--layout-enter-duration) cubic-bezier(.22, 1, .36, 1) 320ms backwards;
+}
+:root[data-layout-transition="single-to-double"] [data-enter="sidebar"] {
+  animation: content-enter var(--layout-enter-duration) cubic-bezier(.22, 1, .36, 1) 480ms backwards;
+}
+main :focus-within { opacity: 1 !important; --layout-enter-distance: 0px; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --transition-fast: 0ms; }
+  html { scroll-behavior: auto; }
+  main *, main ::before, main ::after { animation: none !important; transition: none !important; }
+  .site-header, .site-nav-mobile-panel,
+  :is(.mobile-toc, .site-nav-mobile-panel)::backdrop { transition: none !important; }
+}
+
+@media (min-width: 60rem) {
+  :root[data-layout-transition="single-to-double"] [data-enter="header"] h1 {
+    animation: layout-title-shift 360ms cubic-bezier(.22, 1, .36, 1) backwards;
+  }
+}
+
+/* Keep page loads and client-side navigation immediate on compact layouts. */
+@media (max-width: 59.999rem) {
+  :root[data-page-enter] [data-enter],
+  :root[data-layout-transition] [data-enter] {
+    animation: none !important;
+  }
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}

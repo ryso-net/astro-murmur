@@ -1,0 +1,11 @@
+---
+import { getMessages } from "../i18n/ui";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHeader from "../components/PageHeader.astro";
+
+const messages = getMessages();
+---
+
+<BaseLayout title={messages.notFoundTitle} noIndex>
+  <PageHeader title={messages.notFoundTitle} />
+</BaseLayout>

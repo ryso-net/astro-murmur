@@ -1,0 +1,16 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  className?: string;
+}
+
+const { title, description, className } = Astro.props;
+---
+
+<header class:list={["page-header", className]} data-enter="header">
+  <h1>{title}</h1>
+  <slot name="after-title" />
+  {description && <p class="lead" title={description}>{description}</p>}
+  <slot />
+</header>

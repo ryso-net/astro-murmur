@@ -1,0 +1,14 @@
+---
+import ContentPage from "../components/pages/ContentPage.astro";
+import { getContentPageStaticPaths } from "../utils/content-pages";
+
+export async function getStaticPaths() {
+  return getContentPageStaticPaths();
+}
+
+const { page } = Astro.props;
+---
+
+<ContentPage
+  page={page}
+/>

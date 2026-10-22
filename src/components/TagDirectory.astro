@@ -1,0 +1,34 @@
+---
+import { siteLocale } from "../i18n/ui";
+import { localePath } from "../utils/paths";
+import type { TagGroup } from "../utils/tags";
+
+interface Props {
+  tags: TagGroup[];
+  limit?: number;
+  showCount?: boolean;
+  allTagsLabel?: string;
+}
+
+const { tags, limit, showCount = true, allTagsLabel } = Astro.props;
+const sortedTags = [...tags].sort(
+  (a, b) => b.posts.length - a.posts.length || a.name.localeCompare(b.name, siteLocale),
+);
+const visibleTags = limit === undefined ? sortedTags : sortedTags.slice(0, limit);
+---
+
+<ul class="tag-list">
+  {visibleTags.map((tag) => (
+    <li>
+      <a href={localePath("tags/" + tag.slug)}>#{tag.name}</a>
+      {showCount && <> <small>({tag.posts.length})</small></>}
+    </li>
+  ))}
+  {allTagsLabel && (
+    <li>
+      <a href={localePath("tags")}>
+        {allTagsLabel}<span aria-hidden="true"> →</span>
+      </a>
+    </li>
+  )}
+</ul>

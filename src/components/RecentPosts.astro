@@ -1,0 +1,27 @@
+---
+import { getCollection } from "astro:content";
+import { getMessages } from "../i18n/ui";
+import { localePath } from "../utils/paths";
+import { getPostsForSite } from "../utils/posts";
+import { murmurConfig } from "../config";
+import PostCard from "./PostCard.astro";
+
+const messages = getMessages();
+const posts = getPostsForSite(await getCollection("posts"));
+const limit = Math.max(0, Math.floor(murmurConfig.recentPosts.limit));
+const recentPosts = limit === 0 ? posts : posts.slice(0, limit);
+---
+
+<section class="recent-posts" aria-label={messages.recentPosts}>
+  <div class="section-heading">
+    <h2>{messages.recentPosts}</h2>
+    <a href={localePath("archive")}>
+      {messages.viewArchive}{" "}<span aria-hidden="true">→</span>
+    </a>
+  </div>
+  {recentPosts.length > 0 ? (
+    recentPosts.map((post) => <PostCard post={post} />)
+  ) : (
+    <p>{messages.noPosts} <code>src/content/posts/</code>.</p>
+  )}
+</section>

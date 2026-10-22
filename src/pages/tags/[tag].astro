@@ -1,0 +1,12 @@
+---
+import TagPage from "../../components/pages/TagPage.astro";
+import { getTagStaticPaths } from "../../utils/tags";
+
+export function getStaticPaths() {
+  return getTagStaticPaths();
+}
+
+const { tag, posts, title, description } = Astro.props;
+---
+
+<TagPage tag={tag} posts={posts} title={title} description={description} />

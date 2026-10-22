@@ -1,0 +1,50 @@
+---
+import { getMessages } from "../i18n/ui";
+import type { MarkdownHeading } from "astro";
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+const messages = getMessages();
+---
+
+<aside class="table-of-contents" data-enter="sidebar" data-table-of-contents data-pagefind-ignore>
+  <p class="toc-title">{messages.tableOfContents}</p>
+  <nav aria-label={messages.tableOfContents}>
+    <ol class="toc-list">
+      {headings.map((heading) => (
+        <li><a href={`#${encodeURIComponent(heading.slug)}`} data-toc-link>{heading.text}</a></li>
+      ))}
+    </ol>
+  </nav>
+</aside>
+
+
+<button class="mobile-toc-toggle" type="button" aria-label={messages.tableOfContents} popovertarget="mobile-toc-panel">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+    <circle cx="5" cy="6" r=".75" fill="currentColor" stroke="none"></circle>
+    <circle cx="5" cy="12" r=".75" fill="currentColor" stroke="none"></circle>
+    <circle cx="5" cy="18" r=".75" fill="currentColor" stroke="none"></circle>
+    <path d="M9 6h10M9 12h10M9 18h10"></path>
+  </svg>
+</button>
+<div class="mobile-toc" id="mobile-toc-panel" popover="auto" data-table-of-contents data-pagefind-ignore>
+  <div class="mobile-toc-panel">
+    <div class="mobile-toc-handle" aria-hidden="true"></div>
+    <div class="mobile-toc-scroll">
+      <nav aria-label={messages.tableOfContents}>
+        <ol class="toc-list">
+          {headings.map((heading) => (
+            <li><a href={`#${encodeURIComponent(heading.slug)}`} data-toc-link>{heading.text}</a></li>
+          ))}
+        </ol>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<script>
+  import "../scripts/table-of-contents";
+</script>

@@ -1,0 +1,20 @@
+---
+import type { Messages } from "../i18n/types";
+
+interface Props {
+  messages: Messages;
+  options: Record<string, unknown>;
+}
+
+const { messages, options } = Astro.props;
+---
+
+<section class="artalk-comments" aria-labelledby="comments-title" data-pagefind-ignore>
+  <h2 id="comments-title">{messages.commentsTitle}</h2>
+  <div data-artalk data-artalk-options={JSON.stringify(options)} data-artalk-failed={messages.commentsFailed}></div>
+  <noscript><p>{messages.commentsNoScript}</p></noscript>
+</section>
+
+<script>
+  import "../scripts/artalk-comments";
+</script>

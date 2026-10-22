@@ -1,0 +1,143 @@
+---
+import { murmurConfig } from "../config";
+import { ClientRouter } from "astro:transitions";
+import { getMessages, siteLocale } from "../i18n/ui";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import favicon from "../assets/favicon.svg?no-inline";
+import { withBase } from "../utils/paths";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  socialImage?: string;
+  socialImageAlt?: string;
+  type?: "website" | "article";
+  mainClass?: string;
+  layout?: "single" | "double";
+  noIndex?: boolean;
+}
+
+const {
+  title = murmurConfig.title,
+  description,
+  socialImage,
+  socialImageAlt,
+  type = "website",
+  mainClass,
+  layout = "single",
+  noIndex = false,
+} = Astro.props;
+const messages = getMessages();
+const siteUrl = murmurConfig.siteUrl.trim();
+const pageDescription = description || murmurConfig.description || messages.description;
+const documentTitle = title === murmurConfig.title ? title : `${title} — ${murmurConfig.title}`;
+const canonicalUrl = siteUrl && !noIndex
+  ? new URL(Astro.url.pathname, siteUrl).toString()
+  : undefined;
+const imagePath = socialImage ?? murmurConfig.socialImage;
+const imageBase = import.meta.env.BASE_URL;
+const publicImagePath = imagePath && !/^https?:\/\//i.test(imagePath)
+  ? imageBase !== "/" && imagePath.startsWith(imageBase)
+    ? imagePath
+    : withBase(imagePath)
+  : undefined;
+const absoluteSocialImage = imagePath
+  ? /^https?:\/\//i.test(imagePath)
+    ? imagePath
+    : siteUrl && publicImagePath
+      ? new URL(publicImagePath, siteUrl).toString()
+      : undefined
+  : undefined;
+---
+
+<!doctype html>
+<html lang={siteLocale} data-layout={layout}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <script is:inline>
+      // Apply the stored theme before styles load to avoid a first-paint flash.
+      (() => {
+        const root = document.documentElement;
+        root.dataset.hasJs = "";
+
+        try {
+          const theme = localStorage.getItem("murmur-theme");
+          if (theme === "light" || theme === "dark") {
+            root.dataset.theme = theme;
+            document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", theme);
+          }
+        } catch {
+          // Follow the system theme when storage is unavailable.
+        }
+
+        // Animate directly opened pages too, while keeping browser refreshes still.
+        if (performance.getEntriesByType("navigation")[0]?.type === "navigate") {
+          document.documentElement.dataset.pageEnter = "";
+        }
+
+        // The document root is reused during client-side navigation. Restore the
+        // persisted theme after Astro swaps its attributes for the next page.
+        if (!Reflect.get(window, "__murmurThemeListenerInstalled")) {
+          Reflect.set(window, "__murmurThemeListenerInstalled", true);
+          document.addEventListener("astro:after-swap", () => {
+            // Root attributes are replaced during client navigation, so restore
+            // the progressive-enhancement marker before the next paint.
+            document.documentElement.dataset.hasJs = "";
+            try {
+              const theme = localStorage.getItem("murmur-theme");
+              if (theme === "light" || theme === "dark") {
+                document.documentElement.dataset.theme = theme;
+                document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", theme);
+              }
+            } catch {
+              // Follow the system theme when storage is unavailable.
+            }
+          });
+        }
+      })();
+    </script>
+    <meta name="description" content={pageDescription} />
+    {noIndex && <meta name="robots" content="noindex, follow" />}
+    <meta property="og:site_name" content={murmurConfig.title} />
+    <meta property="og:title" content={documentTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:type" content={type} />
+    {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+    {absoluteSocialImage && <meta property="og:image" content={absoluteSocialImage} />}
+    {absoluteSocialImage && <meta property="og:image:alt" content={socialImageAlt || documentTitle} />}
+    <meta name="twitter:card" content={absoluteSocialImage ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={documentTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    {absoluteSocialImage && <meta name="twitter:image" content={absoluteSocialImage} />}
+    {absoluteSocialImage && <meta name="twitter:image:alt" content={socialImageAlt || documentTitle} />}
+    {siteUrl && (
+      <>
+        <link rel="alternate" type="application/rss+xml" title={`${murmurConfig.title} RSS`} href={withBase("rss.xml")} />
+        <link rel="alternate" type="application/atom+xml" title={`${murmurConfig.title} Atom`} href={withBase("atom.xml")} />
+        <link rel="sitemap" type="application/xml" href={withBase("sitemap.xml")} />
+      </>
+    )}
+    <link rel="icon" href={favicon} type="image/svg+xml" transition:persist />
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    <slot name="head" />
+    <title>{documentTitle}</title>
+    <script>
+      import "../scripts/site-header";
+    </script>
+    <ClientRouter fallback="swap" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">{messages.skipToContent}</a>
+    <div class="site-shell">
+      <SiteHeader />
+      <main id="main-content" class={mainClass}>
+        <slot />
+      </main>
+      <SiteFooter />
+    </div>
+  </body>
+</html>

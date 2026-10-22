@@ -1,0 +1,127 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import { getImage } from "astro:assets";
+import { murmurConfig } from "../../config";
+import { getFallbackNotice, getMessages, siteLocale } from "../../i18n/ui";
+import { localePath } from "../../utils/paths";
+import { formatPostDate, getPostLocale, getPostSlug } from "../../utils/posts";
+import { normalizeTagName } from "../../utils/tags";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHeader from "../PageHeader.astro";
+import CodeCopy from "../CodeCopy.astro";
+import TableOfContents from "../TableOfContents.astro";
+import ArtalkComments from "../ArtalkComments.astro";
+
+interface Props {
+  post: CollectionEntry<"posts">;
+  previousPost?: { slug: string; title: string };
+  nextPost?: { slug: string; title: string };
+  tagSlugs: Record<string, string>;
+}
+
+const { post, previousPost, nextPost, tagSlugs } = Astro.props;
+const messages = getMessages();
+const artalkConfig = murmurConfig.artalk;
+const artalkEnabled = Boolean(artalkConfig.server.trim());
+const configuredArtalkOptions = artalkConfig.options;
+const configuredArtalkLocale = "locale" in configuredArtalkOptions
+  ? configuredArtalkOptions.locale
+  : siteLocale;
+const artalkOptions: Record<string, unknown> = {
+  ...configuredArtalkOptions,
+  server: artalkConfig.server,
+  site: artalkConfig.site,
+  pageKey: localePath(`posts/${getPostSlug(post)}`),
+  pageTitle: post.data.title,
+  locale: configuredArtalkLocale,
+};
+const author = post.data.author?.trim() || murmurConfig.author.trim();
+const socialImage = post.data.socialImage && murmurConfig.siteUrl.trim()
+  ? await getImage({
+      src: post.data.socialImage,
+      width: 1200,
+      height: 630,
+      fit: "cover",
+      format: "jpeg",
+      quality: 80,
+    })
+  : undefined;
+const postLocale = getPostLocale(post);
+const isFallback = postLocale !== siteLocale;
+const description = post.data.description ?? post.data.title;
+const tags = [...new Map(post.data.tags.map((tag) => [normalizeTagName(tag), tag])).values()]
+  .map((tag) => ({
+    name: tag,
+    slug: tagSlugs[normalizeTagName(tag)],
+  }));
+const { Content, headings } = await render(post);
+const tableOfContents = headings.filter((heading) => heading.depth === 2);
+const date = formatPostDate(post.data.pubDate);
+const updatedAt = post.data.updatedDate;
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={description}
+  socialImage={socialImage?.src}
+  socialImageAlt={post.data.socialImageAlt}
+  type="article"
+  layout={tableOfContents.length > 0 ? "double" : "single"}
+>
+  <article class:list={["article", tableOfContents.length > 0 && "article--with-toc"]} lang={postLocale} data-pagefind-body="">
+    <PageHeader
+      title={post.data.title}
+      className="page-header--article"
+    >
+      <div slot="after-title" class="article-meta">
+        <time datetime={post.data.pubDate.toISOString()}>{date}</time>
+        {updatedAt && (
+          <span class="article-meta-update">
+            <span class="article-meta-separator" aria-hidden="true">·</span>
+            {messages.postUpdatedAt}{" "}
+            <time datetime={updatedAt.toISOString()}>{formatPostDate(updatedAt)}</time>
+          </span>
+        )}
+      </div>
+      {author && <p class="post-author">{author}</p>}
+      {isFallback && <p class="fallback-notice">{getFallbackNotice(postLocale)}</p>}
+    </PageHeader>
+    {tableOfContents.length > 0 && (
+      <TableOfContents headings={tableOfContents} />
+    )}
+    <div class="article-layout" data-enter="content">
+      <div class="prose" data-copy-code={messages.copyCode} data-code-copied={messages.codeCopied} data-copy-failed={messages.copyFailed}>
+        <Content />
+      </div>
+      {tags.length > 0 && (
+        <ul class="tag-list article-tags" aria-label={messages.postTags}>
+          {tags.map(({ name, slug }) => (
+            <li>
+              {slug
+                ? <a href={localePath("tags/" + slug)}>#{name}</a>
+                : "#" + name}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+    {(previousPost || nextPost) && (
+      <nav class="post-navigation" aria-label={messages.postNavigation} data-pagefind-ignore>
+        {previousPost ? (
+          <div class="post-navigation-item">
+            <span class="post-navigation-direction">{messages.previousPost}</span>
+            <a class="post-navigation-title" href={localePath(`posts/${previousPost.slug}`)}>{previousPost.title}</a>
+          </div>
+        ) : <span aria-hidden="true" />}
+        {nextPost && (
+          <div class="post-navigation-item post-navigation-item--next">
+            <span class="post-navigation-direction">{messages.nextPost}</span>
+            <a class="post-navigation-title" href={localePath(`posts/${nextPost.slug}`)}>{nextPost.title}</a>
+          </div>
+        )}
+      </nav>
+    )}
+    {artalkEnabled && <ArtalkComments messages={messages} options={artalkOptions} />}
+  </article>
+  <CodeCopy />
+</BaseLayout>
