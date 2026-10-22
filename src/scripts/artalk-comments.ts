@@ -74,6 +74,17 @@ function loadStylesheet(server: string) {
   return request;
 }
 
+function preloadCommentsAssets(target: HTMLElement) {
+  try {
+    const options = JSON.parse(target.dataset.artalkOptions || "{}") as Record<string, unknown>;
+    const server = typeof options.server === "string" ? options.server : "";
+    if (!server) return;
+    void Promise.all([loadClient(server), loadStylesheet(server)]).catch(() => {});
+  } catch {
+    // The visible initialization path reports invalid configuration to the reader.
+  }
+}
+
 async function initializeComments(target: HTMLElement, isActive: () => boolean) {
   const options = JSON.parse(target.dataset.artalkOptions || "{}") as Record<string, unknown>;
   const server = typeof options.server === "string" ? options.server : "";
@@ -129,9 +140,11 @@ function initializeCommentsForPage() {
   let active = true;
   let destroyComments: (() => void) | undefined;
   let observer: IntersectionObserver | undefined;
+  let removeScrollPreloader: (() => void) | undefined;
   const cleanup = () => {
     active = false;
     observer?.disconnect();
+    removeScrollPreloader?.();
     destroyComments?.();
   };
   cleanupCurrentPage = cleanup;
@@ -147,6 +160,12 @@ function initializeCommentsForPage() {
   };
 
   if ("IntersectionObserver" in window) {
+    if (typeof window.addEventListener === "function") {
+      const preloadOnScroll = () => preloadCommentsAssets(target);
+      window.addEventListener("scroll", preloadOnScroll, { passive: true, once: true });
+      removeScrollPreloader = () => window.removeEventListener("scroll", preloadOnScroll);
+    }
+
     observer = new IntersectionObserver((entries) => {
       if (!entries.some((entry) => entry.isIntersecting)) return;
       observer?.disconnect();

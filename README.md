@@ -120,7 +120,7 @@ socialImageAlt: "文章分享图的替代文本"
 
 ## Artalk 评论
 
-在根目录 `murmur.config.ts` 的 `artalk.server` 中填写 Artalk 服务端地址，`artalk.site` 必须与 Artalk 后台的站点名称一致。地址留空时不显示评论区，也不加载第三方资源。评论区距离视口约 1000px 时并行加载固定版本的 Artalk 客户端与样式，待两者就绪后初始化。`pageKey` 沿用文章路径，`pageTitle` 使用文章标题，`locale` 默认跟随构建语言；未设置 `options.darkMode` 时跟随 Murmur 的主题切换。
+在根目录 `murmur.config.ts` 的 `artalk.server` 中填写 Artalk 服务端地址，`artalk.site` 必须与 Artalk 后台的站点名称一致。地址留空时不显示评论区，也不加载第三方资源。用户首次滚动后开始预热 Artalk 客户端与样式；评论区距离视口约 1000px 时初始化，待资源就绪后显示。`pageKey` 沿用文章路径，`pageTitle` 使用文章标题，`locale` 默认跟随构建语言；未设置 `options.darkMode` 时跟随 Murmur 的主题切换。
 
 ```ts
 artalk: {
@@ -188,4 +188,4 @@ CSS、JavaScript 和导入的图片使用哈希文件名，不包含源文件或
 
 普通内容页和已发布文章均进入 Pagefind 索引，归档、标签目录和 404 不重复收录。搜索与评论需要 JavaScript；网络加载失败时显示当前语言的提示，主要导航和文章正文仍可用。
 
-代码复制、目录等增强脚本统一输出为带哈希的外部文件，避免被 Astro 自动内联后重复传输。搜索界面脚本与样式在页面空闲时预热，Pagefind 核心和索引在搜索框聚焦后加载；Artalk 的第三方脚本和样式在评论区距离视口约 1000px 时开始加载，不支持 IntersectionObserver 时立即加载。
+代码复制、目录等增强脚本统一输出为带哈希的外部文件，避免被 Astro 自动内联后重复传输。搜索界面脚本与样式在页面空闲时预热，Pagefind 核心和索引在搜索框聚焦后加载；Artalk 的第三方脚本和样式在首次滚动后预热，并在评论区距离视口约 1000px 时初始化。不支持 IntersectionObserver 时立即加载。
