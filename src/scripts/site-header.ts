@@ -2,6 +2,8 @@ import "./layout-interactions";
 
 type SiteSearchModule = typeof import("./site-search");
 let searchModulePromise: Promise<SiteSearchModule> | undefined;
+let searchUiPromise: Promise<void> | undefined;
+let searchPreloadScheduled = false;
 let pageController: AbortController | undefined;
 const searchShortcutOwner = {};
 
@@ -36,6 +38,33 @@ const loadSearch = () => {
   return searchModulePromise;
 };
 
+const preloadSearch = (trigger: HTMLElement) => {
+  searchUiPromise ??= loadSearch()
+    .then(({ loadPagefindComponents }) => loadPagefindComponents(trigger))
+    .catch((error: unknown) => {
+      searchUiPromise = undefined;
+      throw error;
+    });
+  return searchUiPromise;
+};
+
+function scheduleSearchPreload(trigger: HTMLElement) {
+  if (searchPreloadScheduled || searchUiPromise) return;
+  searchPreloadScheduled = true;
+
+  const start = () => {
+    searchPreloadScheduled = false;
+    if (!trigger.isConnected) return;
+    void preloadSearch(trigger).catch(() => {});
+  };
+
+  const requestIdleCallback = (window as unknown as {
+    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  }).requestIdleCallback;
+  if (requestIdleCallback) requestIdleCallback.call(window, start, { timeout: 1000 });
+  else window.setTimeout(start, 1);
+}
+
 function initializeSiteHeader() {
   pageController?.abort();
   pageController = new AbortController();
@@ -62,7 +91,7 @@ function initializeSiteHeader() {
 
   const openSearch = () => {
     if (!searchTrigger || !searchDialog) return;
-    void loadSearch().then(({ loadPagefindComponents }) => loadPagefindComponents(searchTrigger)).then(() => {
+    void preloadSearch(searchTrigger).then(() => {
       if (signal.aborted || !searchTrigger.isConnected) return;
       searchTrigger.removeAttribute("title");
       if (!searchDialog.open) {
@@ -193,6 +222,8 @@ function initializeSiteHeader() {
       updateButton();
     }, { signal });
   }
+
+  if (searchTrigger) scheduleSearchPreload(searchTrigger);
 }
 
 document.addEventListener("astro:before-swap", cleanupSiteHeaderBeforeSwap);

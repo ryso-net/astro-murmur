@@ -151,7 +151,7 @@ function initializeCommentsForPage() {
       if (!entries.some((entry) => entry.isIntersecting)) return;
       observer?.disconnect();
       void start();
-    }, { rootMargin: "400px" });
+    }, { rootMargin: "1000px" });
     observer.observe(target);
   } else {
     void start();

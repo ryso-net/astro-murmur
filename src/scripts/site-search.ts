@@ -54,12 +54,12 @@ export async function loadPagefindComponents(trigger: HTMLElement) {
   if (!scriptPath || !cssPath) throw new Error("Pagefind component asset paths are missing.");
 
   const cssPromise = loadComponentCss(cssPath);
-  componentUiPromise ??= cssPromise.then(async () => {
+  componentUiPromise ??= (async () => {
     await import(/* @vite-ignore */ scriptPath);
     const components = window.PagefindComponents;
     if (!components) throw new Error("Pagefind components did not initialize.");
     components.getInstanceManager().getInstance("murmur-search");
-  }).catch((error: unknown) => {
+  })().catch((error: unknown) => {
     componentUiPromise = undefined;
     throw error;
   });

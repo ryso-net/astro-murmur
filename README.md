@@ -120,7 +120,7 @@ socialImageAlt: "文章分享图的替代文本"
 
 ## Artalk 评论
 
-在根目录 `murmur.config.ts` 的 `artalk.server` 中填写 Artalk 服务端地址，`artalk.site` 必须与 Artalk 后台的站点名称一致。地址留空时不显示评论区，也不加载第三方资源。评论区距离视口约 400px 时并行加载固定版本的 Artalk 客户端与样式，待两者就绪后初始化。`pageKey` 沿用文章路径，`pageTitle` 使用文章标题，`locale` 默认跟随构建语言；未设置 `options.darkMode` 时跟随 Murmur 的主题切换。
+在根目录 `murmur.config.ts` 的 `artalk.server` 中填写 Artalk 服务端地址，`artalk.site` 必须与 Artalk 后台的站点名称一致。地址留空时不显示评论区，也不加载第三方资源。评论区距离视口约 1000px 时并行加载固定版本的 Artalk 客户端与样式，待两者就绪后初始化。`pageKey` 沿用文章路径，`pageTitle` 使用文章标题，`locale` 默认跟随构建语言；未设置 `options.darkMode` 时跟随 Murmur 的主题切换。
 
 ```ts
 artalk: {
@@ -180,7 +180,7 @@ import RecentPosts from "@ryso-blog/astro-murmur/components/RecentPosts.astro";
 
 语义 HTML 的基础排版和主题样式都由 `src/styles/global.css` 提供，使用系统字体，不加载外部字体或 CSS 框架。布局通过 Astro 的全局样式块引入共享 CSS，由 Astro 按默认策略决定是否内联；当前生产构建输出为可跨页缓存的外部 CSS 文件。主题偏好由 `<head>` 中的最小同步脚本在样式加载前恢复。Astro 客户端路由增强站内切页，关闭 JavaScript 时仍由普通链接导航，阅读和主题跟随系统照常工作。主题 CSS 上限为 **7 KiB gzip**，优先使用 Astro 原生能力，允许为此保留适量 CSS；其余样式仍在保证行为和可读性的前提下继续精简，不能用压缩前文件大小判断，以 `npm run size` 的实际输出为准。启用 Artalk 后另有第三方 CSS 和脚本开销，不计入主题本身的体积。新增交互时优先使用原生 HTML；确有需要时再添加小型、可选脚本。
 
-只有首屏主题恢复使用同步内联脚本。客户端路由模块判断布局变化：单栏转双栏播放标题、主栏和侧栏的专属错峰动画，其他切页按页头、主栏、侧栏顺序淡入；动画由 CSS 根据少量语义标记处理，不需要遍历或清理 DOM。布局判断与页头交互由 Astro 打包为带内容哈希的共享模块，在头部提前下载、文档解析完成后执行。客户端路由切页后由 `astro:page-load` 生命周期重新绑定当前页面的交互。搜索脚本与 Pagefind 索引继续按需加载。构建还会生成适用于 Cloudflare Workers 静态资源和 Pages 的 `_headers` 文件，对当前 `basePath` 下的 `_astro/` 资源设置一年期 `immutable` 缓存；HTML 和使用固定文件名的 Pagefind 资源不套用这项长期缓存。其他托管平台需配置等效响应头。
+只有首屏主题恢复使用同步内联脚本。客户端路由模块判断布局变化：单栏转双栏播放标题、主栏和侧栏的专属错峰动画，其他切页按页头、主栏、侧栏顺序淡入；动画由 CSS 根据少量语义标记处理，不需要遍历或清理 DOM。布局判断与页头交互由 Astro 打包为带内容哈希的共享模块，在头部提前下载、文档解析完成后执行。客户端路由切页后由 `astro:page-load` 生命周期重新绑定当前页面的交互。搜索界面脚本和样式在页面空闲时预热，Pagefind 核心和索引在搜索框聚焦后加载。构建还会生成适用于 Cloudflare Workers 静态资源和 Pages 的 `_headers` 文件，对当前 `basePath` 下的 `_astro/` 资源设置一年期 `immutable` 缓存；HTML 和使用固定文件名的 Pagefind 资源不套用这项长期缓存。其他托管平台需配置等效响应头。
 
 CSS、JavaScript 和导入的图片使用哈希文件名，不包含源文件或组件名称；优化后的图片可能包含源文件哈希和变换哈希。favicon 位于 `src/assets/`，同样交由构建工具处理。新增需要隐藏原名的资源应放入 `src/` 并导入；`public/` 按 Astro 约定原样复制。Pagefind 自行管理的入口和索引文件名、页面路由、订阅与站点地图等公开地址保持各自的标准格式。文件名哈希用于命名和缓存，不隐藏可下载的资源内容。
 
@@ -188,4 +188,4 @@ CSS、JavaScript 和导入的图片使用哈希文件名，不包含源文件或
 
 普通内容页和已发布文章均进入 Pagefind 索引，归档、标签目录和 404 不重复收录。搜索与评论需要 JavaScript；网络加载失败时显示当前语言的提示，主要导航和文章正文仍可用。
 
-代码复制、目录等增强脚本统一输出为带哈希的外部文件，避免被 Astro 自动内联后重复传输。搜索脚本与索引仍按需加载；Artalk 的第三方脚本和样式在评论区距离视口约 400px 时开始加载，不支持 IntersectionObserver 时立即加载。
+代码复制、目录等增强脚本统一输出为带哈希的外部文件，避免被 Astro 自动内联后重复传输。搜索界面脚本与样式在页面空闲时预热，Pagefind 核心和索引在搜索框聚焦后加载；Artalk 的第三方脚本和样式在评论区距离视口约 1000px 时开始加载，不支持 IntersectionObserver 时立即加载。

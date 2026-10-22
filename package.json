@@ -1,6 +1,6 @@
 {
   "name": "@ryso-blog/astro-murmur",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Murmur is a lightweight static-first Astro blog theme.",
   "repository": {
     "type": "git",
